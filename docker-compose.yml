@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      DATABASE_URL: sqlite:///./storage/app.db
+      SECRET_KEY: change-me
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8080
+    volumes:
+      - backend-storage:/app/storage
+    ports:
+      - "8000:8000"
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+volumes:
+  backend-storage:
+

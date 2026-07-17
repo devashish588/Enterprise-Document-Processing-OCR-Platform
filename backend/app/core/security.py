@@ -1,0 +1,52 @@
+from datetime import datetime, timedelta, timezone
+import base64
+import hashlib
+import hmac
+import json
+import os
+from typing import Any
+
+
+def _b64(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def _unb64(data: str) -> bytes:
+    return base64.urlsafe_b64decode(data + "=" * (-len(data) % 4))
+
+
+def hash_password(password: str, salt: str | None = None) -> str:
+    salt = salt or _b64(os.urandom(16))
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 120_000)
+    return f"pbkdf2_sha256${salt}${_b64(digest)}"
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    algorithm, salt, digest = password_hash.split("$", 2)
+    if algorithm != "pbkdf2_sha256":
+        return False
+    candidate = hash_password(password, salt).split("$", 2)[2]
+    return hmac.compare_digest(candidate, digest)
+
+
+def create_access_token(subject: str, secret: str, minutes: int, claims: dict[str, Any] | None = None) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {"sub": subject, "iat": int(now.timestamp()), "exp": int((now + timedelta(minutes=minutes)).timestamp())}
+    payload.update(claims or {})
+    header = {"alg": "HS256", "typ": "JWT"}
+    signing_input = f"{_b64(json.dumps(header, separators=(',', ':')).encode())}.{_b64(json.dumps(payload, separators=(',', ':')).encode())}"
+    signature = hmac.new(secret.encode(), signing_input.encode(), hashlib.sha256).digest()
+    return f"{signing_input}.{_b64(signature)}"
+
+
+def decode_access_token(token: str, secret: str) -> dict[str, Any]:
+    header_b64, payload_b64, signature_b64 = token.split(".", 2)
+    signing_input = f"{header_b64}.{payload_b64}"
+    expected = _b64(hmac.new(secret.encode(), signing_input.encode(), hashlib.sha256).digest())
+    if not hmac.compare_digest(expected, signature_b64):
+        raise ValueError("invalid token signature")
+    payload = json.loads(_unb64(payload_b64))
+    if int(payload["exp"]) < int(datetime.now(timezone.utc).timestamp()):
+        raise ValueError("token expired")
+    return payload
+

@@ -1,0 +1,8 @@
+Invoice Number INV-1001
+Date 17/07/2026
+Vendor: Acme Office Supplies
+GST 27ABCDE1234F1Z5
+Subtotal Rs. 1000.00
+Tax Rs. 250.00
+Total Rs. 1250.00
+

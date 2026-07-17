@@ -1,0 +1,8 @@
+text,label
+"invoice gst total amount due subtotal",invoice
+"receipt cash paid total change",receipt
+"agreement terms party signature contract",contract
+"bank statement account balance transaction",bank_statement
+"passport identity date of birth license",id_card
+"patient diagnosis doctor clinical report",medical_report
+
