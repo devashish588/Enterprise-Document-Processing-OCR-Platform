@@ -30,7 +30,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`.
+Open `http://localhost:5180` if you use the checked-in dev script, or the URL Vite prints.
 
 ## Test
 
@@ -69,4 +69,3 @@ Backend: `http://localhost:8000`
 - [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
 - [Testing Guide](docs/TESTING_GUIDE.md)
 - [User Guide](docs/USER_GUIDE.md)
-

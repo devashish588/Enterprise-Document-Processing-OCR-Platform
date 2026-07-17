@@ -18,6 +18,15 @@ class UserCreate(BaseModel):
     role: str = "analyst"
 
 
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str
+    role: str
+    created_at: datetime
+
+
 class FieldOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -55,4 +64,3 @@ class SearchResult(BaseModel):
     document: DocumentOut
     score: float
     snippet: str
-

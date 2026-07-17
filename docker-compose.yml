@@ -3,22 +3,35 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    restart: unless-stopped
     environment:
       DATABASE_URL: sqlite:///./storage/app.db
-      SECRET_KEY: change-me
-      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8080
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      ALLOWED_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      UPLOAD_DIR: ./storage/uploads
     volumes:
       - backend-storage:/app/storage
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: http://localhost:8000/api/v1
+    restart: unless-stopped
     ports:
       - "8080:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+
 volumes:
   backend-storage:
-

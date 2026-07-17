@@ -16,8 +16,7 @@ class Repository(Generic[ModelT]):
         return list(self.db.query(self.model).offset(offset).limit(limit))
 
     def add(self, entity: ModelT) -> ModelT:
+        """Stage entity for insertion. Caller is responsible for commit."""
         self.db.add(entity)
-        self.db.commit()
-        self.db.refresh(entity)
+        self.db.flush()
         return entity
-

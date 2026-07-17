@@ -13,4 +13,7 @@ dist/
 *.db
 coverage/
 .DS_Store
+*.log
+backend/uvicorn.log
+frontend/vite.log
 

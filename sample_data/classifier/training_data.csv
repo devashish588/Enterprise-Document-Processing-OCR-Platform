@@ -1,8 +1,25 @@
 text,label
-"invoice gst total amount due subtotal",invoice
-"receipt cash paid total change",receipt
-"agreement terms party signature contract",contract
-"bank statement account balance transaction",bank_statement
-"passport identity date of birth license",id_card
-"patient diagnosis doctor clinical report",medical_report
-
+"invoice number INV-001 gst total amount due subtotal vendor bill to",invoice
+"tax invoice gst number amount payable due date invoice date",invoice
+"invoice total amount due subtotal line items quantity unit price",invoice
+"receipt total paid cash change cashier thank you",receipt
+"receipt amount paid by card transaction approved",receipt
+"sales receipt store purchase total items paid",receipt
+"agreement terms and conditions party hereinafter signature whereas",contract
+"contract agreement between parties terms obligations signature date",contract
+"service agreement scope of work payment terms termination clause",contract
+"bank statement account number balance debit credit transaction date",bank_statement
+"statement of account opening balance closing balance transactions",bank_statement
+"account statement deposits withdrawals available balance",bank_statement
+"passport identity nationality date of birth place of birth",id_card
+"driving license date of birth address license number expiry",id_card
+"national identity card id number date of birth photograph",id_card
+"patient diagnosis doctor clinical prescription treatment",medical_report
+"medical report patient name diagnosis treatment prescribed",medical_report
+"lab report test results patient doctor hospital",medical_report
+"purchase order po number ship to order date quantity",purchase_order
+"purchase order vendor item description unit price total",purchase_order
+"tax return pan assessment year income tax deductions",tax_document
+"income tax return gross income deductions tax payable",tax_document
+"utility bill account number meter reading amount due",general
+"certificate of completion awarded to this certifies",general

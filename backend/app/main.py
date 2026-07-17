@@ -21,7 +21,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    for router in (health.router, auth.router, documents.router, search.router, reports.router, analytics.router, audit.router):
+    app.include_router(health.router)
+    for router in (auth.router, documents.router, search.router, reports.router, analytics.router, audit.router):
         app.include_router(router, prefix="/api/v1")
     return app
 

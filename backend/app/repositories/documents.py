@@ -17,6 +17,20 @@ class DocumentRepository(Repository[Document]):
     def __init__(self, db: Session):
         super().__init__(db, Document)
 
+    def list_filtered(
+        self,
+        document_type: str | None = None,
+        status: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[Document]:
+        q = self.db.query(Document)
+        if document_type:
+            q = q.filter(Document.document_type == document_type)
+        if status:
+            q = q.filter(Document.status == status)
+        return q.order_by(Document.created_at.desc()).offset(offset).limit(limit).all()
+
     def search(self, query: str, limit: int = 25) -> list[Document]:
         term = f"%{query}%"
         return (
@@ -26,6 +40,10 @@ class DocumentRepository(Repository[Document]):
             .limit(limit)
             .all()
         )
+
+    def delete(self, doc: Document) -> None:
+        self.db.delete(doc)
+        self.db.commit()
 
 
 class OCRRepository(Repository[OCRResult]):
@@ -46,4 +64,3 @@ class ValidationRepository(Repository[ValidationIssue]):
 class AuditRepository(Repository[AuditLog]):
     def __init__(self, db: Session):
         super().__init__(db, AuditLog)
-

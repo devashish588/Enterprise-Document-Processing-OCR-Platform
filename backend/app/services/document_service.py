@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from uuid import uuid4
 
@@ -11,6 +12,8 @@ from app.services.extraction import FieldExtractor
 from app.services.ocr import OCREngine
 from app.services.preprocessing import ImagePreprocessor
 from app.services.validation import ValidationEngine
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentService:
@@ -28,23 +31,33 @@ class DocumentService:
         path = self.settings.upload_dir / f"{uuid4().hex}_{safe_name}"
         path.write_bytes(data)
 
-        doc = self.documents.add(Document(filename=safe_name, content_type=content_type, storage_path=str(path)))
-        processed = ImagePreprocessor().preprocess(path)
-        ocr = OCREngine().extract(processed)
-        classification = DocumentClassifier().classify(ocr.text)
-        extracted = FieldExtractor().extract(classification.label, ocr.text)
-        issues = ValidationEngine().validate(classification.label, extracted)
+        try:
+            doc = Document(filename=safe_name, content_type=content_type, storage_path=str(path))
+            self.db.add(doc)
+            self.db.flush()
 
-        doc.document_type = classification.label
-        doc.status = "needs_review" if issues else "processed"
-        doc.confidence = min(ocr.confidence, classification.confidence)
-        self.ocr_results.add(OCRResult(document_id=doc.id, engine=ocr.engine, text=ocr.text, confidence=ocr.confidence))
-        for name, (value, confidence) in extracted.items():
-            self.fields.add(ExtractedField(document_id=doc.id, name=name, value=value, confidence=confidence))
-        for issue in issues:
-            self.validations.add(ValidationIssue(document_id=doc.id, field_name=issue.field_name, severity=issue.severity, message=issue.message))
-        self.audit.add(AuditLog(actor=actor, action="document.ingested", entity_type="document", entity_id=str(doc.id)))
-        self.db.commit()
-        self.db.refresh(doc)
-        return doc
+            processed = ImagePreprocessor().preprocess(path)
+            ocr = OCREngine().extract(processed)
+            classification = DocumentClassifier().classify(ocr.text)
+            extracted = FieldExtractor().extract(classification.label, ocr.text)
+            issues = ValidationEngine().validate(classification.label, extracted)
 
+            doc.document_type = classification.label
+            doc.status = "needs_review" if issues else "processed"
+            doc.confidence = round(min(ocr.confidence, classification.confidence), 4)
+
+            self.db.add(OCRResult(document_id=doc.id, engine=ocr.engine, text=ocr.text, confidence=ocr.confidence))
+            for name, (value, confidence) in extracted.items():
+                self.db.add(ExtractedField(document_id=doc.id, name=name, value=value, confidence=confidence))
+            for issue in issues:
+                self.db.add(ValidationIssue(document_id=doc.id, field_name=issue.field_name, severity=issue.severity, message=issue.message))
+            self.db.add(AuditLog(actor=actor, action="document.ingested", entity_type="document", entity_id=str(doc.id)))
+
+            self.db.commit()
+            self.db.refresh(doc)
+            logger.info("Ingested document id=%s type=%s status=%s", doc.id, doc.document_type, doc.status)
+            return doc
+        except Exception:
+            self.db.rollback()
+            path.unlink(missing_ok=True)
+            raise
